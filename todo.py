@@ -4,10 +4,10 @@ import datetime
 from InquirerPy import prompt
 from InquirerPy.base.control import Choice
 from InquirerPy import inquirer
+from InquirerPy.separator import Separator
 from InquirerPy.validator import EmptyInputValidator
 from InquirerPy.validator import PathValidator
 from InquirerPy.validator import NumberValidator
-
 
 things = []
 
@@ -34,12 +34,22 @@ question_2 = [
 question_3 = [
 	{
 		"type": "rawlist",
-		"choice": things,
-		"message": "",
+		"choices": [],
+		"message": "Press Ctrl+C to exit",
 		"default": 1,
-		"validate": NumberValidator( message="Input should be number", float_allowed=False),
-		"invalid_message": "Minimum 1 selection",
 	},
+	{
+		"type": "rawlist",
+		 "message": "Press Ctrl+C to exit",
+		"choices": [
+			Choice(name="Finished task", value="fin"),
+			Choice(name="Delete task", value="del"),
+			Separator(line=15 * "*"),
+			Choice(name="Go back", value="bak"),
+		],
+		"validate": lambda result: len(result) > 0,
+		"invalid_message": "Minimum 1 selection",
+    },			
 ]
 
 db_location = prompt(questions_1)
@@ -56,6 +66,7 @@ c = conn.cursor()
 
 
 result = prompt(questions=question_2)
+action = result[0]
 
 if result[0] == "Write":
 	todo = inquirer.text(message="What would you like to put in the todo list:", validate=EmptyInputValidator(),).execute()
@@ -65,6 +76,8 @@ if result[0] == "Write":
 elif result[0] == "Read":
 	c.execute("SELECT * FROM todo")
 	things = c.fetchall()
+	question_3[0]["choices"] = things
+	readlist = prompt(question_3)
 else:
 	exit()
 
